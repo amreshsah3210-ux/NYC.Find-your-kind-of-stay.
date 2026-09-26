@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2f3ec">
+  <title>NYC Stay | Room Type Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="NYC Stay home">
+      <span class="brand-mark"><i data-lucide="building-2"></i></span>
+      <span>NYC<span class="brand-light">STAY</span></span>
+    </a>
+    <div class="topbar-meta">
+      <span class="data-status"><span class="status-dot" id="status-dot"></span><span id="dataset-status">Connecting to dataset</span></span>
+      <a class="api-link" href="/docs" target="_blank" rel="noreferrer">API docs <i data-lucide="arrow-up-right"></i></a>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro-row">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-line"></span> NEW YORK CITY · AIRBNB 2019</p>
+        <h1>Find your kind<br>of <span>stay.</span></h1>
+        <p class="intro-copy">Explore the city’s listing mix, then estimate a room type from the details that matter.</p>
+      </div>
+      <div class="intro-side" aria-label="Dataset source">
+        <span class="side-label">SOURCE DATA</span>
+        <span class="source-name">Inside Airbnb<br><b>New York City</b></span>
+        <span class="mono" id="dataset-count">Loading listings...</span>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Dataset overview">
+      <article class="metric">
+        <span class="metric-label">LISTINGS IN DATASET</span>
+        <strong id="metric-listings">--</strong>
+        <span class="metric-note">New York City snapshot</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">MOST COMMON ROOM</span>
+        <strong class="metric-room" id="metric-room">--</strong>
+        <span class="metric-note" id="metric-room-share">Share of listings</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">MEDIAN NIGHTLY PRICE</span>
+        <strong id="metric-price">--</strong>
+        <span class="metric-note">USD · listed price</span>
+      </article>
+      <article class="metric metric-accent">
+        <span class="metric-label">BOROUGHS COVERED</span>
+        <strong id="metric-boroughs">--</strong>
+        <span class="metric-note">Across the five boroughs</span>
+      </article>
+    </section>
+
+    <section class="workspace-grid">
+      <div class="data-column">
+        <section class="panel room-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">THE CITY MIX</p><h2>Room types</h2></div>
+            <span class="panel-caption">LISTING SHARE</span>
+          </div>
+          <div id="room-bars" class="room-bars"><div class="loading-line"></div></div>
+          <div class="borough-strip" id="borough-strip" aria-label="Listings by borough"></div>
+        </section>
+
+        <section class="panel listing-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">A FEW FROM THE DATA</p><h2>On the map</h2></div>
+            <span class="panel-caption">SAMPLE LISTINGS</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>LISTING</th><th>NEIGHBOURHOOD</th><th>ROOM TYPE</th><th>PRICE / NIGHT</th></tr></thead>
+              <tbody id="listing-rows"><tr><td colspan="4" class="empty-cell">Waiting for dataset...</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <aside class="panel predictor-panel">
+        <div class="predictor-heading">
+          <div class="predictor-icon"><i data-lucide="scan-search"></i></div>
+          <div><p class="eyebrow">CLASSIFIER</p><h2>What type of stay?</h2></div>
+        </div>
+        <p class="form-intro">Enter the listing details to see which room category the model expects.</p>
+        <form id="predict-form">
+          <div class="form-grid">
+            <label class="field field-wide">Borough
+              <select name="neighbourhood_group" required>
+                <option>Manhattan</option><option>Brooklyn</option><option>Queens</option><option>Bronx</option><option>Staten Island</option>
+              </select>
+            </label>
+            <label class="field field-wide">Neighbourhood
+              <input name="neighbourhood" id="neighbourhood-input" list="neighbourhood-options" value="Harlem" required autocomplete="off">
+              <datalist id="neighbourhood-options"></datalist>
+            </label>
+            <label class="field">Latitude<input name="latitude" type="number" min="-90" max="90" step="any" value="40.8116" required></label>
+            <label class="field">Longitude<input name="longitude" type="number" min="-180" max="180" step="any" value="-73.9465" required></label>
+            <label class="field">Price / night <span class="input-prefix"><span>$</span><input name="price" type="number" min="1" step="1" value="125" required></span></label>
+            <label class="field">Minimum nights<input name="minimum_nights" type="number" min="1" step="1" value="2" required></label>
+            <label class="field">Number of reviews<input name="number_of_reviews" type="number" min="0" step="1" value="18" required></label>
+            <label class="field">Reviews / month<input name="reviews_per_month" type="number" min="0" step="0.1" value="1.2" required></label>
+            <label class="field">Host listings<input name="calculated_host_listings_count" type="number" min="1" step="1" value="1" required></label>
+            <label class="field">Days available<input name="availability_365" type="number" min="0" max="365" step="1" value="180" required></label>
+          </div>
+          <button class="submit-button" type="submit"><span>Classify room type</span><i data-lucide="arrow-right"></i></button>
+        </form>
+        <div id="prediction-result" class="prediction-result" aria-live="polite" hidden></div>
+        <p class="model-note"><i data-lucide="sparkles"></i> Random Forest · trained on NYC Airbnb features</p>
+      </aside>
+    </section>
+
+    <footer class="page-footer"><span>NYC STAY TYPE CLASSIFIER</span><span>Room type is an estimate, not a booking guarantee.</span></footer>
+  </main>
+</body>
+</html>
